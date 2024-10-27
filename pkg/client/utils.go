@@ -61,3 +61,41 @@ func (api *ApiClient) addHeaders(header http.Header, apiHeaders ...ApiHeader) {
 		}
 	}
 }
+
+// resetDebugInfo resets the debug info built for a previous request-response
+// cycle. This ensures that the information is always up-to-date.
+func (api *ApiClient) resetDebugInfo() {
+	api.debugInfo.Reset()
+}
+
+// setDebugInfo sets the debug info for a request-response cycle. It saves the
+// information of both client and server during the conversation.
+func (api *ApiClient) setDebugInfo(
+	request *http.Request, response *http.Response,
+) error {
+	api.debugInfo.WriteString("API Debug Info\n===============\n\n")
+
+	reqOut, reqOutErr := httputil.DumpRequestOut(request, true)
+	if reqOutErr != nil {
+		return reqOutErr
+	}
+
+	api.debugInfo.WriteString("Client Side\n============\n")
+	api.debugInfo.WriteString(string(reqOut))
+
+	resOut, resOutErr := httputil.DumpResponse(response, true)
+	if resOutErr != nil {
+		return resOutErr
+	}
+
+	api.debugInfo.WriteString("Server Side\n============\n")
+	api.debugInfo.WriteString(string(resOut))
+
+	return nil
+}
+
+// GetDebugInfo returns the debugged data collected during a request-response
+// cycle.
+func (api *ApiClient) GetDebugInfo() string {
+	return api.debugInfo.String()
+}
