@@ -1,11 +1,17 @@
 package client
 
+import (
+	"bytes"
+)
+
 // ApiClient is a simple API client that makes HTTP requests fun.
 type ApiClient struct {
-	StatusCode int
-	Body       string
-	Error      error
-	Headers    []ApiHeader
+	StatusCode      int
+	Body            string
+	Error           error
+	ResponseHeaders map[string]string
+	Debug           bool
+	debugInfo       bytes.Buffer
 }
 
 // ApiHeader defines the structure to model API header key and values.
