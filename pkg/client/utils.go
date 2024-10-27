@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httputil"
+	"strings"
 )
 
 // parseResponseBody returns the string representation of the response. From
@@ -25,9 +27,9 @@ func parseResponseBody(response *http.Response) (string, error) {
 	return string(responseBody), nil
 }
 
-// setHeaders sets the headers for the response on the API client.
-func (api *ApiClient) setHeaders(response *http.Response) {
-	addHeaders(response.Header, api.Headers)
+// setResponseHeaders sets the headers for the response on the API client.
+func (api *ApiClient) setResponseHeaders(response *http.Response) {
+	api.addHeaders(response.Header)
 }
 
 func buildQueryParams(query []ApiQuery) string {
@@ -37,12 +39,25 @@ func buildQueryParams(query []ApiQuery) string {
 		queryBuffer.WriteString(fmt.Sprintf("%v=%v&", q.Key, q.Value))
 	}
 
-	return queryBuffer.String()
+	queryString := queryBuffer.String()
+
+	return queryString[:len(queryString)-1] // remove the trailing '&'
 }
 
 // addHeaders adds headers to the provided http.Header.
-func addHeaders(header http.Header, apiHeaders []ApiHeader) {
-	for _, h := range apiHeaders {
-		header.Add(h.Key, h.Value)
+// When the apiHeaders parameter is nil, it means that the headers are to be
+// set on the ApiClient's ResponseHeaders field. This effectively serves as a way to
+// set header values for requests and responses.
+func (api *ApiClient) addHeaders(header http.Header, apiHeaders ...ApiHeader) {
+	if apiHeaders == nil {
+		api.ResponseHeaders = make(map[string]string)
+
+		for key, value := range header {
+			api.ResponseHeaders[key] = strings.Join(value, " ")
+		}
+	} else {
+		for _, h := range apiHeaders {
+			header.Add(h.Key, h.Value)
+		}
 	}
 }
