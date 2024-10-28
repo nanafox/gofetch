@@ -22,7 +22,7 @@ func main() {
 	}
 
 	queryParams := []client.ApiQuery{
-		{Key: "name", Value: "awesome"},
+		{Key: "name", Value: "John Doe"},
 		// Add as many as needed, it will be handled automatically for you
 	}
 
