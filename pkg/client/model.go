@@ -25,5 +25,5 @@ type ApiHeader struct {
 // ApiQuery defines a way to easily specify query parameters
 type ApiQuery struct {
 	Key   string
-	Value any
+	Value string
 }

@@ -36,7 +36,8 @@ func buildQueryParams(query []ApiQuery) string {
 	queryBuffer := bytes.NewBufferString("?")
 
 	for _, q := range query {
-		queryBuffer.WriteString(fmt.Sprintf("%v=%v&", q.Key, q.Value))
+		cleanedValue := strings.Replace(q.Value, " ", "+", -1)
+		queryBuffer.WriteString(fmt.Sprintf("%v=%v&", q.Key, cleanedValue))
 	}
 
 	queryString := queryBuffer.String()
