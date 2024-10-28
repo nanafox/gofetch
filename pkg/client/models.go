@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"io"
 	"time"
 )
 
@@ -26,4 +27,13 @@ type ApiHeader struct {
 type ApiQuery struct {
 	Key   string
 	Value string
+}
+
+// requestData is a struct that holds the data for an API request.
+type requestData struct {
+	method  string
+	url     string
+	query   []ApiQuery
+	body    io.Reader
+	headers []ApiHeader
 }
