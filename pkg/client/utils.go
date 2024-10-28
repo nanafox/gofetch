@@ -47,8 +47,8 @@ func buildQueryParams(query []ApiQuery) string {
 
 // addHeaders adds headers to the provided http.Header.
 // When the apiHeaders parameter is nil, it means that the headers are to be
-// set on the ApiClient's ResponseHeaders field. This effectively serves as a way to
-// set header values for requests and responses.
+// set on the ApiClient's ResponseHeaders field. This effectively serves as
+// a way to set header values for requests and responses.
 func (api *ApiClient) addHeaders(header http.Header, apiHeaders ...ApiHeader) {
 	if apiHeaders == nil {
 		api.ResponseHeaders = make(map[string]string)
@@ -76,7 +76,7 @@ func (api *ApiClient) setDebugInfo(
 ) error {
 	api.debugInfo.WriteString("API Debug Info\n===============\n\n")
 
-	reqOut, reqOutErr := httputil.DumpRequestOut(request, true)
+	reqOut, reqOutErr := httputil.DumpRequest(request, true)
 	if reqOutErr != nil {
 		return reqOutErr
 	}
@@ -99,4 +99,67 @@ func (api *ApiClient) setDebugInfo(
 // cycle.
 func (api *ApiClient) GetDebugInfo() string {
 	return api.debugInfo.String()
+}
+
+// requestHandler handles the request.
+func (api *ApiClient) requestHandler(data *requestData) (
+	*http.Response, error,
+) {
+	api.resetDebugInfo() // reset the debug info
+
+	client := &http.Client{Timeout: api.Timeout}
+	var queryString string
+
+	if data.query != nil {
+		queryString = buildQueryParams(data.query)
+	}
+
+	request, err := http.NewRequest(data.method, data.url+queryString, data.body)
+	if err != nil {
+		return nil, err
+	}
+
+	api.addHeaders(request.Header, data.headers...)
+	api.addHeaders(
+		request.Header, ApiHeader{Key: "User-Agent", Value: "httpClient v0.1"},
+	)
+
+	response, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if api.Debug == true {
+		err = api.setDebugInfo(request, response)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return response, nil
+}
+
+// responseHandler handles the response received from the server. It sets the
+// status code and relevant response headers for client.
+func (api *ApiClient) responseHandler(response *http.Response) {
+	responseBody, err := parseResponseBody(response)
+	if err != nil {
+		api.Error = err
+		return
+	}
+
+	api.StatusCode = response.StatusCode
+	api.Body = responseBody
+	api.setResponseHeaders(response)
+}
+
+// actionHandler handles the HTTP action to be performed.
+func (api *ApiClient) actionHandler(data *requestData) {
+	response, err := api.requestHandler(data)
+	if err != nil {
+		api.Error = err
+		return
+	}
+
+	api.responseHandler(response)
 }
