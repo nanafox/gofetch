@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/nanafox/simple-http-client/pkg/client"
 )
 
 func main() {
-	apiClient := client.ApiClient{Debug: true}
+	apiClient := client.ApiClient{Debug: true, Timeout: 5 * time.Second}
 
 	headers := []client.ApiHeader{
 		{Key: "Accept", Value: "application/json"},

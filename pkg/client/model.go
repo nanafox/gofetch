@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"time"
 )
 
 // ApiClient is a simple API client that makes HTTP requests fun.
@@ -12,6 +13,7 @@ type ApiClient struct {
 	ResponseHeaders map[string]string
 	Debug           bool
 	debugInfo       bytes.Buffer
+	Timeout         time.Duration
 }
 
 // ApiHeader defines the structure to model API header key and values.

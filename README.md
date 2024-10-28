@@ -12,6 +12,11 @@ This package aims to simplify HTTP requests by wrapping around the
 
 2. Use it for your HTTP requests
 
+## Features
+
+- Supports setting request timeouts.
+- Supports enabling and disabling debug information.
+
 ## Example Usages
 
 ### GET Requests

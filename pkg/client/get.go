@@ -29,7 +29,7 @@ func (api *ApiClient) handleRequest(
 ) (*http.Response, error) {
 	api.resetDebugInfo() // reset the debug info
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: api.Timeout}
 
 	queryString := buildQueryParams(query)
 
