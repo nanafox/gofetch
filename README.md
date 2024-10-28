@@ -172,4 +172,5 @@ func main() {
     apiClient.Get(url, nil, headers...)
 
     // response omitted for brevity
+}
 ```
