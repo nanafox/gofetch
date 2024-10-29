@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"strings"
 )
 
@@ -36,8 +37,7 @@ func buildQueryParams(query []ApiQuery) string {
 	queryBuffer := bytes.NewBufferString("?")
 
 	for _, q := range query {
-		cleanedValue := strings.Replace(q.Value, " ", "+", -1)
-		queryBuffer.WriteString(fmt.Sprintf("%v=%v&", q.Key, cleanedValue))
+		queryBuffer.WriteString(q.Key + "=" + url.QueryEscape(q.Value) + "&")
 	}
 
 	queryString := queryBuffer.String()
