@@ -17,6 +17,31 @@ This package aims to simplify HTTP requests by wrapping around the
 - Supports setting request timeouts.
 - Supports enabling and disabling debug information.
 
+## Using the API client
+
+To use this HTTP client, you have two options:
+
+1. Use the specific methods that map to the HTTP action you are trying to
+   perform
+   ```go
+   // example
+   
+   api.Get(url, queryParams, headers...)
+   api.Post(url, queryParams, body, headers...)
+   ...
+   ```
+
+2. Use the one-method style and specify the HTTP method as an argument.
+   ```go
+   // example
+   
+   api.Do("GET", url, queryParams, headers...) // for GET requests
+   api.Do("POST", url, queryParams, body, headers...) // for POST requests
+   ...
+   ```
+
+Regardless of the approach you choose, you will receive the same experience.
+
 ## Example Usages
 
 ### GET Requests
@@ -173,4 +198,85 @@ func main() {
 
     // response omitted for brevity
 }
+```
+
+### POST Requests
+
+**Method Signature:**
+
+```go
+package client
+
+func (api *ApiClient) Post(url string, body []byte, query []ApiQuery, headers ...ApiHeader)
+```
+
+#### Example 1
+
+```go
+package main
+
+import (
+   "fmt"
+   "github.com/nanafox/simple-http-client/pkg/client"
+   "log"
+   "strings"
+   "time"
+)
+
+func main() {
+   api := client.ApiClient{Debug: true, Timeout: 5 * time.Second}
+   url := "https://httpbin.org/post"
+
+   headers := []client.ApiHeader{
+      {"Content-Type", "application/json"},
+      {"Authorization", "Bearer <token>"},
+   }
+
+   data := `{"name": "John Doe", "email": "jdoe@dev.com", "password": "password1234"}`
+
+   body := strings.NewReader(data)
+
+   api.Post(url+"/developer/register", nil, body, headers...)
+	 
+   // The above is the same as below
+   api.Do("POST", url+"/developer/register", nil, body, headers...)
+
+   if api.Error != nil {
+      log.Fatal(api.Error)
+   }
+
+   fmt.Println(api.GetDebugInfo()) // Print the information
+   
+   // If you want the status code use this
+   fmt.Println(api.StatusCode)
+   
+   // The response is also available as a string
+   fmt.Println(api.Body)
+}
+```
+
+### PUT Requests
+
+**Method Signature:**
+
+```go
+package client
+
+func (api *ApiClient) Put(url string, body []byte, query []ApiQuery, headers ...ApiHeader)
+```
+
+#### Examples
+
+The `Put` method follows about the same process as the `Post` method. The
+example
+provided is applicable.
+
+### DELETE Requests
+
+**Method Signature:**
+
+```go
+package client
+
+func (api *ApiClient) Delete(url string, body []byte, query []ApiQuery, headers ...ApiHeader)
 ```
