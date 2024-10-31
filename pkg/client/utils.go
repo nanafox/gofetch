@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -162,4 +163,28 @@ func (api *ApiClient) actionHandler(data *requestData) {
 	}
 
 	api.responseHandler(response)
+}
+
+// ResponseToMap takes the JSON response body and returns a map type for easy
+// access and retrievals. This will fail if the Body is JSON unencodable.
+func (api *ApiClient) ResponseToMap() (map[string]any, error) {
+	var s map[string]any
+
+	err := json.Unmarshal([]byte(api.Body), &s)
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
+}
+
+// ResponseToStruct takes the JSON response body and returns a struct type for
+// easy access and retrievals. This will fail if the Body is JSON unencodable.
+func (api *ApiClient) ResponseToStruct(v interface{}) error {
+	err := json.Unmarshal([]byte(api.Body), &v)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
