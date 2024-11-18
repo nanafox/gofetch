@@ -130,7 +130,7 @@ func (api *ApiClient) requestHandler(data *requestData) (
 		return nil, err
 	}
 
-	if api.Debug == true {
+	if api.Debug {
 		err = api.setDebugInfo(request, response)
 		if err != nil {
 			return nil, err
@@ -167,21 +167,19 @@ func (api *ApiClient) actionHandler(data *requestData) {
 
 // ResponseToMap takes the JSON response body and returns a map type for easy
 // access and retrievals. This will fail if the Body is JSON unencodable.
-func (api *ApiClient) ResponseToMap() (map[string]any, error) {
-	var s map[string]any
-
-	err := json.Unmarshal([]byte(api.Body), &s)
-	if err != nil {
-		return nil, err
-	}
-
-	return s, nil
+func (api *ApiClient) ResponseToMap(m interface{}) (err error) {
+	return responseToOther(m, api.Body)
 }
 
 // ResponseToStruct takes the JSON response body and returns a struct type for
 // easy access and retrievals. This will fail if the Body is JSON unencodable.
-func (api *ApiClient) ResponseToStruct(v interface{}) error {
-	err := json.Unmarshal([]byte(api.Body), &v)
+func (api *ApiClient) ResponseToStruct(v interface{}) (err error) {
+	return responseToOther(v, api.Body)
+}
+
+// responseToOther converts the API response body to the requested interface.
+func responseToOther(output interface{}, responseBody string) (err error) {
+	err = json.Unmarshal([]byte(responseBody), &output)
 	if err != nil {
 		return err
 	}
