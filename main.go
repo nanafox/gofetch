@@ -49,12 +49,13 @@ func main() {
 	fmt.Println(apiClient.ResponseHeaders)
 
 	// convert JSON response to Go map
-	m, err := apiClient.ResponseToMap()
+	responseToMap := make(map[string]interface{})
+	err := apiClient.ResponseToMap(&responseToMap)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("\nResponseToMap: %+v\n", m)
+	fmt.Printf("\nResponseToMap: %+v\n", responseToMap)
 
 	// convert JSON response to Go struct
 	var httpBinResponse HttpBinResponse
