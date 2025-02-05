@@ -8,7 +8,7 @@ This package aims to simplify HTTP requests by wrapping around the
 1. Download the package
 
     ```bash
-    go get -u github.com/nanafox/simple-http-client/v1
+    go get -u github.com/nanafox/simple-http-client
     ```
 
 2. Use it for your HTTP requests
@@ -70,7 +70,7 @@ package main
 
 import (
    "fmt"
-   "github.com/nanafox/simple-http-client/v1"
+   "github.com/nanafox/simple-http-client"
    "log"
 )
 
@@ -109,7 +109,7 @@ package main
 
 import (
    "fmt"
-   "github.com/nanafox/simple-http-client/v1"
+   "github.com/nanafox/simple-http-client"
    "log"
    "time"
 )
@@ -220,7 +220,7 @@ package main
 
 import (
    "fmt"
-   "github.com/nanafox/simple-http-client/v1"
+   "github.com/nanafox/simple-http-client"
    "log"
    "strings"
    "time"

@@ -1,3 +1,3 @@
-module github.com/nanafox/simple-http-client/v1
+module github.com/nanafox/simple-http-client
 
 go 1.23.2
