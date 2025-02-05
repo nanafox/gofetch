@@ -1,1 +1,3 @@
-require github.com/nanafox/simple-http-client/v1 v1.0.0
+module example
+
+require github.com/nanafox/simple-http-client v1.0.0
