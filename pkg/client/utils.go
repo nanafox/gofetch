@@ -17,7 +17,7 @@ func parseResponseBody(response *http.Response) (string, error) {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			_ = fmt.Errorf("An error occurred while reading the response: %v\n", err)
+			_ = fmt.Errorf("an error occurred while reading the response: %v", err)
 		}
 	}(response.Body)
 
