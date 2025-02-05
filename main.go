@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/nanafox/simple-http-client/pkg/client"
+	"github.com/nanafox/simple-http-client/v1/pkg/client"
 )
 
 // HttpBinResponse is a struct that represents the response from the
@@ -18,8 +18,9 @@ type HttpBinResponse struct {
 	Url     string            `json:"url"`
 }
 
+// Example usage
 func main() {
-	apiClient := client.ApiClient{Debug: true, Timeout: 5 * time.Second}
+	apiClient := client.ApiClient{Debug: true, Timeout: 5000 * time.Millisecond}
 
 	headers := []client.ApiHeader{
 		{Key: "Accept", Value: "application/json"},

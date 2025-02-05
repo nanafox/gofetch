@@ -6,8 +6,9 @@ This package aims to simplify HTTP requests by wrapping around the
 ## Installation
 
 1. Download the package
+
     ```bash
-    go get -u github.com/nanafox/simple-http-client
+    go get -u github.com/nanafox/simple-http-client/v1
     ```
 
 2. Use it for your HTTP requests
@@ -23,18 +24,20 @@ To use this HTTP client, you have two options:
 
 1. Use the specific methods that map to the HTTP action you are trying to
    perform
+
    ```go
    // example
-   
+
    api.Get(url, queryParams, headers...)
    api.Post(url, queryParams, body, headers...)
    ...
    ```
 
 2. Use the one-method style and specify the HTTP method as an argument.
+
    ```go
    // example
-   
+
    api.Do("GET", url, queryParams, headers...) // for GET requests
    api.Do("POST", url, queryParams, body, headers...) // for POST requests
    ...
@@ -67,7 +70,7 @@ package main
 
 import (
    "fmt"
-   "github.com/nanafox/simple-http-client/pkg/client"
+   "github.com/nanafox/simple-http-client/v1/pkg/client"
    "log"
 )
 
@@ -80,7 +83,7 @@ func main() {
    if apiClient.Error != nil {
       log.Fatal(apiClient.Error)
    }
-   
+ 
    fmt.Printf("The status code was: %v\n", apiClient.StatusCode)
    fmt.Println(apiClient.Body)
 }
@@ -106,28 +109,28 @@ package main
 
 import (
    "fmt"
-   "github.com/nanafox/simple-http-client/pkg/client"
+   "github.com/nanafox/simple-http-client/v1/pkg/client"
    "log"
    "time"
 )
 
-func main() { 
+func main() {
    // Debug and Timeout can be set while creating an API Client instance
    apiClient := client.ApiClient{Debug: true, Timeout: time.Second * 5}
 
    // they can also be set individually after an instance has been created
    apiClient.Debug = true // enable debugging
    apiClient.Timeout = time.Second * 5 // Timeout after five seconds
-   
+ 
    // Make a request
    url := "https://httpbin.org/get"
    apiClient.Get(url, nil)
-	 
+ 
    // handle errors
    if apiClient.Error != nil {
       log.Fatal(apiClient.Error)
    }
-	 
+ 
    // Print the debugging info
    fmt.Println(apiClient.GetDebugInfo())
 }
@@ -151,7 +154,7 @@ Check the code sample below for an example usage.
 func main() {
    apiClient := client.ApiClient{Timeout: time.Second * 5}
 
-	 // Add query parameters: simply key-value pairs
+  // Add query parameters: simply key-value pairs
    queryParams := []client.ApiQuery{
     {Key: "q", Value: "HTTP Clients"},
     {Key: "page", Value: "3"},
@@ -160,11 +163,11 @@ func main() {
   }
 
    url := "https://httpbin.org/get"
-	 
+ 
    // The API will build the full URL with the query parameters, for example
    // the resultant URL of this request will be
    // GET https://httpbin.ord/get?q=HTTP+Clients&page=3&page_size=10
-   
+ 
   // make the request
    apiClient.Get(url, queryParams)
 
@@ -192,7 +195,7 @@ func main() {
   }
 
     url := "https://httpbin.org/get"
-    
+ 
     // make the request
     apiClient.Get(url, nil, headers...)
 
@@ -217,7 +220,7 @@ package main
 
 import (
    "fmt"
-   "github.com/nanafox/simple-http-client/pkg/client"
+   "github.com/nanafox/simple-http-client/v1/pkg/client"
    "log"
    "strings"
    "time"
@@ -237,7 +240,7 @@ func main() {
    body := strings.NewReader(data)
 
    api.Post(url+"/developer/register", nil, body, headers...)
-	 
+ 
    // The above is the same as below
    api.Do("POST", url+"/developer/register", nil, body, headers...)
 
@@ -246,10 +249,10 @@ func main() {
    }
 
    fmt.Println(api.GetDebugInfo()) // Print the information
-   
+ 
    // If you want the status code use this
    fmt.Println(api.StatusCode)
-   
+ 
    // The response is also available as a string
    fmt.Println(api.Body)
 }
