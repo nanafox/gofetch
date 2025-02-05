@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/nanafox/simple-http-client/v1/pkg/client"
+	"github.com/nanafox/simple-http-client/v1"
 )
 
 // HttpBinResponse is a struct that represents the response from the

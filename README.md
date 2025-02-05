@@ -70,7 +70,7 @@ package main
 
 import (
    "fmt"
-   "github.com/nanafox/simple-http-client/v1/pkg/client"
+   "github.com/nanafox/simple-http-client/v1"
    "log"
 )
 
@@ -109,7 +109,7 @@ package main
 
 import (
    "fmt"
-   "github.com/nanafox/simple-http-client/v1/pkg/client"
+   "github.com/nanafox/simple-http-client/v1"
    "log"
    "time"
 )
@@ -220,7 +220,7 @@ package main
 
 import (
    "fmt"
-   "github.com/nanafox/simple-http-client/v1/pkg/client"
+   "github.com/nanafox/simple-http-client/v1"
    "log"
    "strings"
    "time"
