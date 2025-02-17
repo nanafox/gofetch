@@ -1,5 +1,7 @@
 # gofetch - A Lightweight and Efficient HTTP Client for Go
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/nanafox/gofetch.svg)](https://pkg.go.dev/github.com/nanafox/gofetch)
+
 `gofetch` is a lightweight, high-performance HTTP client designed to simplify
 making HTTP requests in Go. Built on top of Go’s standard `net/http` package,
 `gofetch` provides a clean, intuitive API with minimal configuration while
@@ -239,5 +241,11 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 - X: [@_nanafox](https://x.com/_nanafox)
 - GitHub: [@nanafox](https://github.com/nanafox)
 - Website: [www.mnforson.live](https://www.mnforson.live)
+
+---
+
+Check the Reference
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/nanafox/gofetch.svg)](https://pkg.go.dev/github.com/nanafox/gofetch)
 
 Happy coding! 🚀
