@@ -1,30 +1,33 @@
-package client
+package gofetch
 
 import (
 	"bytes"
 	"io"
+	"net/http"
 	"time"
 )
 
-// ApiClient is a simple API client that makes HTTP requests fun.
-type ApiClient struct {
+// Client is a simple API client that makes HTTP requests.
+// It contains the status code, response body, error information,
+// response headers, debug information, configuration, and an HTTP client.
+type Client struct {
 	StatusCode      int
 	Body            string
 	Error           error
 	ResponseHeaders map[string]string
-	Debug           bool
 	debugInfo       bytes.Buffer
-	Timeout         time.Duration
+	Config          Config
+	httpClient      *http.Client
 }
 
-// ApiHeader defines the structure to model API header key and values.
-type ApiHeader struct {
+// Header defines the structure to model API header key and values.
+type Header struct {
 	Key   string
 	Value string
 }
 
-// ApiQuery defines a way to easily specify query parameters
-type ApiQuery struct {
+// Query defines a way to easily specify query parameters
+type Query struct {
 	Key   string
 	Value string
 }
@@ -33,7 +36,13 @@ type ApiQuery struct {
 type requestData struct {
 	method  string
 	url     string
-	query   []ApiQuery
+	query   []Query
 	body    io.Reader
-	headers []ApiHeader
+	headers []Header
+}
+
+// Config is used to store the configuration for the client
+type Config struct {
+	Timeout time.Duration
+	Debug   bool
 }

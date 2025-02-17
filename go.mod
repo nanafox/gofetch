@@ -1,3 +1,3 @@
-module github.com/nanafox/simple-http-client
+module github.com/nanafox/gofetch
 
 go 1.20

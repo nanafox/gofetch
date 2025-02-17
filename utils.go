@@ -1,4 +1,4 @@
-package client
+package gofetch
 
 import (
 	"bytes"
@@ -11,8 +11,7 @@ import (
 	"strings"
 )
 
-// parseResponseBody returns the string representation of the response. From
-// here, other formatting can be applied.
+// parseResponseBody returns the string representation of the response. From here, other formatting can be applied.
 func parseResponseBody(response *http.Response) (string, error) {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -29,12 +28,12 @@ func parseResponseBody(response *http.Response) (string, error) {
 	return string(responseBody), nil
 }
 
-// setResponseHeaders sets the headers for the response on the API client.
-func (api *ApiClient) setResponseHeaders(response *http.Response) {
-	api.addHeaders(response.Header)
+// setResponseHeaders sets the headers for the response on the client client.
+func (client *Client) setResponseHeaders(response *http.Response) {
+	client.addHeaders(response.Header)
 }
 
-func buildQueryParams(query []ApiQuery) string {
+func buildQueryParams(query []Query) string {
 	queryBuffer := bytes.NewBufferString("?")
 
 	for _, q := range query {
@@ -47,15 +46,12 @@ func buildQueryParams(query []ApiQuery) string {
 }
 
 // addHeaders adds headers to the provided http.Header.
-// When the apiHeaders parameter is nil, it means that the headers are to be
-// set on the ApiClient's ResponseHeaders field. This effectively serves as
-// a way to set header values for requests and responses.
-func (api *ApiClient) addHeaders(header http.Header, apiHeaders ...ApiHeader) {
+func (client *Client) addHeaders(header http.Header, apiHeaders ...Header) {
 	if apiHeaders == nil {
-		api.ResponseHeaders = make(map[string]string)
+		client.ResponseHeaders = make(map[string]string)
 
 		for key, value := range header {
-			api.ResponseHeaders[key] = strings.Join(value, " ")
+			client.ResponseHeaders[key] = strings.Join(value, " ")
 		}
 	} else {
 		for _, h := range apiHeaders {
@@ -64,74 +60,71 @@ func (api *ApiClient) addHeaders(header http.Header, apiHeaders ...ApiHeader) {
 	}
 }
 
-// resetDebugInfo resets the debug info built for a previous request-response
-// cycle. This ensures that the information is always up-to-date.
-func (api *ApiClient) resetDebugInfo() {
-	api.debugInfo.Reset()
+// resetDebugInfo resets the debug info built for a previous request-response cycle.
+func (client *Client) resetDebugInfo() {
+	client.debugInfo.Reset()
 }
 
-// setDebugInfo sets the debug info for a request-response cycle. It saves the
-// information of both client and server during the conversation.
-func (api *ApiClient) setDebugInfo(
-	request *http.Request, response *http.Response,
-) error {
-	api.debugInfo.WriteString("API Debug Info\n===============\n\n")
+// setDebugInfo sets the debug info for a request-response cycle.
+func (client *Client) setDebugInfo(request *http.Request, response *http.Response) error {
+	client.debugInfo.WriteString("API Debug Info\n===============\n\n")
 
 	reqOut, reqOutErr := httputil.DumpRequest(request, true)
 	if reqOutErr != nil {
 		return reqOutErr
 	}
 
-	api.debugInfo.WriteString("Client Side\n============\n")
-	api.debugInfo.WriteString(string(reqOut))
+	client.debugInfo.WriteString("Client Side\n============\n")
+	client.debugInfo.WriteString(string(reqOut))
 
 	resOut, resOutErr := httputil.DumpResponse(response, true)
 	if resOutErr != nil {
 		return resOutErr
 	}
 
-	api.debugInfo.WriteString("Server Side\n============\n")
-	api.debugInfo.WriteString(string(resOut))
+	client.debugInfo.WriteString("Server Side\n============\n")
+	client.debugInfo.WriteString(string(resOut))
 
 	return nil
 }
 
-// GetDebugInfo returns the debugged data collected during a request-response
-// cycle.
-func (api *ApiClient) GetDebugInfo() string {
-	return api.debugInfo.String()
+// GetDebugInfo returns the debugged data collected during a request-response cycle.
+func (client *Client) GetDebugInfo() string {
+	return client.debugInfo.String()
 }
 
 // requestHandler handles the request.
-func (api *ApiClient) requestHandler(data *requestData) (
-	*http.Response, error,
-) {
-	api.resetDebugInfo() // reset the debug info
+func (client *Client) requestHandler(data *requestData) (*http.Response, error) {
+	client.resetDebugInfo() // reset the debug info
 
-	client := &http.Client{Timeout: api.Timeout}
+	// Use the optimized HTTP client that was created when the Client was instantiated
 	var queryString string
-
 	if data.query != nil {
 		queryString = buildQueryParams(data.query)
 	}
 
+	// Build the request
 	request, err := http.NewRequest(data.method, data.url+queryString, data.body)
 	if err != nil {
 		return nil, err
 	}
 
-	api.addHeaders(request.Header, data.headers...)
-	api.addHeaders(
-		request.Header, ApiHeader{Key: "User-Agent", Value: "httpClient v0.1"},
-	)
+	// Set headers
+	client.addHeaders(request.Header, data.headers...)
+	client.addHeaders(request.Header, Header{Key: "User-Agent", Value: "httpClient v0.1"})
 
-	response, err := client.Do(request)
+	// ensure the timeout is always the same as the configured one in case the
+	// user changes it.
+	client.httpClient.Timeout = client.Config.Timeout
+
+	// Execute the request
+	response, err := client.httpClient.Do(request)
 	if err != nil {
 		return nil, err
 	}
 
-	if api.Debug {
-		err = api.setDebugInfo(request, response)
+	if client.Config.Debug {
+		err = client.setDebugInfo(request, response)
 		if err != nil {
 			return nil, err
 		}
@@ -140,44 +133,41 @@ func (api *ApiClient) requestHandler(data *requestData) (
 	return response, nil
 }
 
-// responseHandler handles the response received from the server. It sets the
-// status code and relevant response headers for client.
-func (api *ApiClient) responseHandler(response *http.Response) {
+// responseHandler handles the response received from the server.
+func (client *Client) responseHandler(response *http.Response) {
 	responseBody, err := parseResponseBody(response)
 	if err != nil {
-		api.Error = err
+		client.Error = err
 		return
 	}
 
-	api.StatusCode = response.StatusCode
-	api.Body = responseBody
-	api.setResponseHeaders(response)
+	client.StatusCode = response.StatusCode
+	client.Body = responseBody
+	client.setResponseHeaders(response)
 }
 
 // actionHandler handles the HTTP action to be performed.
-func (api *ApiClient) actionHandler(data *requestData) {
-	response, err := api.requestHandler(data)
+func (client *Client) actionHandler(data *requestData) {
+	response, err := client.requestHandler(data)
 	if err != nil {
-		api.Error = err
+		client.Error = err
 		return
 	}
 
-	api.responseHandler(response)
+	client.responseHandler(response)
 }
 
-// ResponseToMap takes the JSON response body and returns a map type for easy
-// access and retrievals. This will fail if the Body is JSON unencodable.
-func (api *ApiClient) ResponseToMap(m interface{}) (err error) {
-	return responseToOther(m, api.Body)
+// ResponseToMap takes the JSON response body and returns a map type for easy access.
+func (client *Client) ResponseToMap(m interface{}) (err error) {
+	return responseToOther(m, client.Body)
 }
 
-// ResponseToStruct takes the JSON response body and returns a struct type for
-// easy access and retrievals. This will fail if the Body is JSON unencodable.
-func (api *ApiClient) ResponseToStruct(v interface{}) (err error) {
-	return responseToOther(v, api.Body)
+// ResponseToStruct takes the JSON response body and returns a struct type for easy access.
+func (client *Client) ResponseToStruct(v interface{}) (err error) {
+	return responseToOther(v, client.Body)
 }
 
-// responseToOther converts the API response body to the requested interface.
+// responseToOther converts the client response body to the requested interface.
 func responseToOther(output interface{}, responseBody string) (err error) {
 	err = json.Unmarshal([]byte(responseBody), &output)
 	if err != nil {

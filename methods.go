@@ -1,42 +1,42 @@
-package client
+package gofetch
 
 import (
 	"io"
 )
 
 // Do performs an API request with the specified HTTP method.
-func (api *ApiClient) Do(
-	method, url string, query []ApiQuery, body io.Reader, headers ...ApiHeader,
+func (client *Client) Do(
+	method, url string, query []Query, body io.Reader, headers ...Header,
 ) {
 	data := &requestData{
 		method: method, url: url, query: query, headers: headers, body: body,
 	}
 
-	api.actionHandler(data)
+	client.actionHandler(data)
 }
 
 // Get performs an API GET request.
-func (api *ApiClient) Get(url string, query []ApiQuery, headers ...ApiHeader) {
+func (api *Client) Get(url string, query []Query, headers ...Header) {
 	api.Do("GET", url, query, nil, headers...)
 }
 
 // Post performs an API POST request.
-func (api *ApiClient) Post(
-	url string, query []ApiQuery, body io.Reader, headers ...ApiHeader,
+func (api *Client) Post(
+	url string, query []Query, body io.Reader, headers ...Header,
 ) {
 	api.Do("POST", url, query, body, headers...)
 }
 
 // Put performs an API PUT request.
-func (api *ApiClient) Put(
-	url string, query []ApiQuery, body io.Reader, headers ...ApiHeader,
+func (api *Client) Put(
+	url string, query []Query, body io.Reader, headers ...Header,
 ) {
 	api.Do("PUT", url, query, body, headers...)
 }
 
 // Delete performs an API DELETE request.
-func (api *ApiClient) Delete(
-	url string, query []ApiQuery, body io.Reader, headers ...ApiHeader,
+func (api *Client) Delete(
+	url string, query []Query, body io.Reader, headers ...Header,
 ) {
 	api.Do("DELETE", url, query, body, headers...)
 }
