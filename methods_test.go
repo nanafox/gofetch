@@ -3,7 +3,6 @@ package gofetch
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -38,7 +37,10 @@ func TestMain(m *testing.M) {
 		}
 
 		// Write the response data
-		w.Write(responseData)
+		_, err := w.Write(responseData)
+		if err != nil {
+			return
+		}
 	}))
 
 	// Run the tests
@@ -102,7 +104,7 @@ func TestClient_DoWithMockServer(t *testing.T) {
 				reqBody = bytes.NewBufferString("test data")
 			}
 
-			// Call the client method based on HTTP method
+			// Call the client method based on the HTTP method
 			switch tt.method {
 			case "GET":
 				client.Do("GET", tt.url, nil, nil)
@@ -119,7 +121,10 @@ func TestClient_DoWithMockServer(t *testing.T) {
 
 			// Unmarshal the response data and assert the expected response
 			var response map[string]string
-			client.ResponseToMap(&response)
+			err := client.ResponseToMap(&response)
+			if err != nil {
+				return
+			}
 			if client.Error != nil {
 				t.Fatalf("Error while using ResponseToMap: %v", client.Error)
 			}
@@ -148,7 +153,6 @@ func TestClient_Get(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Echo back the query parameters as JSON
 		queryParams := r.URL.Query()
-		fmt.Println("the query params are: ", queryParams)
 		responseData := map[string]interface{}{
 			"message": "GET request successful",
 			"query":   queryParams,
@@ -156,7 +160,10 @@ func TestClient_Get(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		// Respond with query parameters received
-		json.NewEncoder(w).Encode(responseData)
+		err := json.NewEncoder(w).Encode(responseData)
+		if err != nil {
+			return
+		}
 	}))
 	defer server.Close()
 
@@ -177,7 +184,10 @@ func TestClient_Get(t *testing.T) {
 
 	// Use ResponseToMap to decode the response
 	var response map[string]interface{}
-	client.ResponseToMap(&response)
+	err := client.ResponseToMap(&response)
+	if err != nil {
+		return
+	}
 	if client.Error != nil {
 		t.Fatalf("Error while using ResponseToMap: %v", client.Error)
 	}
@@ -193,7 +203,6 @@ func TestClient_Get(t *testing.T) {
 	// Assert that the query parameters were received correctly
 	queryMap := response["query"].(map[string]interface{})
 
-	fmt.Println("query map: ", queryMap)
 	assert.Equal(
 		t,
 		"value1",
@@ -222,7 +231,10 @@ func TestClient_Post(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		// Respond with the received request body
-		json.NewEncoder(w).Encode(responseData)
+		err := json.NewEncoder(w).Encode(responseData)
+		if err != nil {
+			return
+		}
 	}))
 	defer server.Close()
 
@@ -245,7 +257,10 @@ func TestClient_Post(t *testing.T) {
 
 	// Use ResponseToMap to decode the response
 	var response map[string]string
-	client.ResponseToMap(&response)
+	err := client.ResponseToMap(&response)
+	if err != nil {
+		return
+	}
 	if client.Error != nil {
 		t.Fatalf("Error while using ResponseToMap: %v", client.Error)
 	}
@@ -268,14 +283,17 @@ func TestClient_Put(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		// Respond with the received request body (optional, as we might not send back content for 204)
-		json.NewEncoder(w).Encode(responseData)
+		err := json.NewEncoder(w).Encode(responseData)
+		if err != nil {
+			return
+		}
 	}))
 	defer server.Close()
 
 	client := New()
 	client.Config.Debug = DebuggingEnabled
 
-	// Prepare PUT request body
+	// Prepare the PUT request body
 	reqBody := bytes.NewBufferString(`{"key":"updated value"}`)
 
 	// Make a PUT request
@@ -291,7 +309,10 @@ func TestClient_Put(t *testing.T) {
 
 	// Use ResponseToMap to decode the response (optional, as the response might be empty for 204)
 	var response map[string]string
-	client.ResponseToMap(&response)
+	err := client.ResponseToMap(&response)
+	if err != nil {
+		t.Fatalf("Error while using ResponseToMap: %v", err)
+	}
 	if client.Error != nil {
 		t.Fatalf("Error while using ResponseToMap: %v", client.Error)
 	}
@@ -313,8 +334,11 @@ func TestClient_Delete(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		// Respond with message
-		json.NewEncoder(w).Encode(responseData)
+		// Respond with the message
+		err := json.NewEncoder(w).Encode(responseData)
+		if err != nil {
+			return
+		}
 	}))
 	defer server.Close()
 
@@ -329,7 +353,10 @@ func TestClient_Delete(t *testing.T) {
 
 	// Use ResponseToMap to decode the response
 	var response map[string]string
-	client.ResponseToMap(&response)
+	err := client.ResponseToMap(&response)
+	if err != nil {
+		return
+	}
 	if client.Error != nil {
 		t.Fatalf("Error while using ResponseToMap: %v", client.Error)
 	}

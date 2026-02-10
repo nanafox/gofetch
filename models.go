@@ -20,7 +20,7 @@ type Client struct {
 	httpClient      *http.Client
 }
 
-// Header defines the structure to model API header key and values.
+// Header defines the structure to model the API header key and values.
 type Header struct {
 	Key   string
 	Value string

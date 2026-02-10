@@ -28,7 +28,7 @@ func parseResponseBody(response *http.Response) (string, error) {
 	return string(responseBody), nil
 }
 
-// setResponseHeaders sets the headers for the response on the client client.
+// setResponseHeaders sets the headers for the response on the client.
 func (client *Client) setResponseHeaders(response *http.Response) {
 	client.addHeaders(response.Header)
 }

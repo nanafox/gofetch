@@ -15,7 +15,7 @@ func New(config ...Config) (client *Client) {
 	}
 
 	if client.Config.Timeout == 0 {
-		// 500ms Default timeout if not provided
+		// 500 ms Default timeout if not provided
 		client.Config.Timeout = 500 * time.Millisecond
 	}
 

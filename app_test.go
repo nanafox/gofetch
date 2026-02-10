@@ -10,11 +10,10 @@ import (
 func TestDefaultNewClient(t *testing.T) {
 	client := New()
 
-	want := false
 	got := client.Config.Debug
 
-	if client.Config.Debug != want {
-		t.Fatalf("expected Debug to be %v, but it is %v", want, got)
+	if client.Config.Debug != false {
+		t.Fatalf("expected Debug to be %v, but it is %v", false, got)
 	}
 
 	expectedTimeout := 500 * time.Millisecond
@@ -25,17 +24,16 @@ func TestDefaultNewClient(t *testing.T) {
 	}
 }
 
-// TestUserConfigUsedForNewClient ensures that user provided configs are used
+// TestUserConfigUsedForNewClient ensures that the user-provided configs are used
 // instead of the defaults.
 func TestUserConfigUsedForNewClient(t *testing.T) {
 	expectedTimeout := 200 * time.Millisecond
 	client := New(Config{Timeout: expectedTimeout, Debug: true})
 
-	want := true
 	got := client.Config.Debug
 
-	if client.Config.Debug != want {
-		t.Fatalf("expected Debug to be %v, but it is %v", want, got)
+	if client.Config.Debug != true {
+		t.Fatalf("expected Debug to be %v, but it is %v", true, got)
 	}
 
 	currentTimeout := client.Config.Timeout
