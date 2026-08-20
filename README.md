@@ -240,7 +240,7 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 - Author: **Maxwell Nana Forson (theLazyProgrammer)**
 - X: [@_nanafox](https://x.com/_nanafox)
 - GitHub: [@nanafox](https://github.com/nanafox)
-- Website: [www.mnforson.live](https://www.mnforson.live)
+- Website:[www.thelazyprogrammer.me](https://www.thelazyprogrammer.me)
 
 ---
 
