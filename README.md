@@ -54,6 +54,12 @@ client := gofetch.New(gofetch.Config{
 - **Timeout**: `500ms`
 - **Debug**: `false`
 
+For this reason, you can also create a client without any configuration:
+
+```go
+client := gofetch.New(gofetch.Client{})
+```
+
 You can also update the configuration later:
 
 ```go
@@ -88,7 +94,7 @@ import (
 )
 
 func main() {
-    client := gofetch.New()
+    client := gofetch.New(gofetch.Client{})
     url := "https://httpbin.org/get"
  
     client.Get(url, nil)

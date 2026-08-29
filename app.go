@@ -7,28 +7,29 @@ import (
 
 // New creates and returns a new instance of Client with
 // optional timeout and debug settings
-func New(config ...Config) (client *Client) {
-	if config != nil {
-		client = &Client{Config: Config{Timeout: config[0].Timeout, Debug: config[0].Debug}}
-	} else {
-		client = &Client{Config: Config{}}
+func New(cfg Config) *Client {
+	var c *Client
+
+	if cfg.Timeout == 0 {
+		cfg.Timeout = 500 * time.Millisecond
+	}
+	c = &Client{Config: cfg}
+
+	if c.Config.Timeout == 0 {
+		// 500ms Default timeout if not provided
+		c.Config.Timeout = 500 * time.Millisecond
 	}
 
-	if client.Config.Timeout == 0 {
-		// 500 ms Default timeout if not provided
-		client.Config.Timeout = 500 * time.Millisecond
-	}
-
-	httpClient := &http.Client{
+	hc := &http.Client{
 		Transport: &http.Transport{
 			MaxIdleConns:        100,              // Number of idle connections to maintain
 			MaxIdleConnsPerHost: 10,               // Max number of idle connections per host
 			IdleConnTimeout:     90 * time.Second, // Timeout for idle connections
 			DisableKeepAlives:   false,            // Keep connections alive
 		},
-		Timeout: client.Config.Timeout,
+		Timeout: c.Config.Timeout,
 	}
 
-	client.httpClient = httpClient
-	return
+	c.httpClient = hc
+	return c
 }

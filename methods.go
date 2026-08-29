@@ -5,38 +5,38 @@ import (
 )
 
 // Do performs an API request with the specified HTTP method.
-func (client *Client) Do(
+func (c *Client) Do(
 	method, url string, query []Query, body io.Reader, headers ...Header,
 ) {
 	data := &requestData{
 		method: method, url: url, query: query, headers: headers, body: body,
 	}
 
-	client.actionHandler(data)
+	c.actionHandler(data)
 }
 
 // Get performs an API GET request.
-func (client *Client) Get(url string, query []Query, headers ...Header) {
-	client.Do("GET", url, query, nil, headers...)
+func (c *Client) Get(url string, query []Query, headers ...Header) {
+	c.Do("GET", url, query, nil, headers...)
 }
 
 // Post performs an API POST request.
-func (client *Client) Post(
+func (c *Client) Post(
 	url string, query []Query, body io.Reader, headers ...Header,
 ) {
-	client.Do("POST", url, query, body, headers...)
+	c.Do("POST", url, query, body, headers...)
 }
 
 // Put performs an API PUT request.
-func (client *Client) Put(
+func (c *Client) Put(
 	url string, query []Query, body io.Reader, headers ...Header,
 ) {
-	client.Do("PUT", url, query, body, headers...)
+	c.Do("PUT", url, query, body, headers...)
 }
 
 // Delete performs an API DELETE request.
-func (client *Client) Delete(
+func (c *Client) Delete(
 	url string, query []Query, body io.Reader, headers ...Header,
 ) {
-	client.Do("DELETE", url, query, body, headers...)
+	c.Do("DELETE", url, query, body, headers...)
 }

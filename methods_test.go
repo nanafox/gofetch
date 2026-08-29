@@ -11,33 +11,33 @@ import (
 )
 
 // Global test server
-var testServer *httptest.Server
+var srv *httptest.Server
 
 // Global debugging flag
-var DebuggingEnabled bool
+var debugEnabled bool
 
 // Initialize the global test server and set up debugging
 func TestMain(m *testing.M) {
 	// Initialize the test server with different response behaviors
-	testServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var responseData []byte
+	srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var data []byte
 		switch r.Method {
 		case "GET":
 			w.WriteHeader(http.StatusOK) // Simulate a 200 OK response for GET
-			responseData = []byte(`{"message": "GET request successful"}`)
+			data = []byte(`{"message": "GET request successful"}`)
 		case "POST":
 			w.WriteHeader(http.StatusCreated) // Simulate a 201 Created response for POST
-			responseData = []byte(`{"message": "POST request successful"}`)
+			data = []byte(`{"message": "POST request successful"}`)
 		case "PUT":
 			w.WriteHeader(http.StatusOK)
-			responseData = []byte(`{"message": "PUT request successful"}`)
+			data = []byte(`{"message": "PUT request successful"}`)
 		case "DELETE":
 			w.WriteHeader(http.StatusNoContent)
-			responseData = []byte(nil)
+			data = []byte(nil)
 		}
 
 		// Write the response data
-		_, err := w.Write(responseData)
+		_, err := w.Write(data)
 		if err != nil {
 			return
 		}
@@ -47,7 +47,7 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 
 	// Cleanup: Stop the server after all tests
-	testServer.Close()
+	srv.Close()
 
 	// Exit with the result code from running tests
 	if code != 0 {
@@ -56,9 +56,9 @@ func TestMain(m *testing.M) {
 }
 
 // Example Test Cases Using the Global Test Server
-func TestClient_DoWithMockServer(t *testing.T) {
+func TestClientDoWithMockServer(t *testing.T) {
 	// Flag to enable debugging for all tests
-	DebuggingEnabled = true
+	debugEnabled = true
 
 	tests := []struct {
 		method       string
@@ -68,25 +68,25 @@ func TestClient_DoWithMockServer(t *testing.T) {
 	}{
 		{
 			"GET",
-			testServer.URL + "/test",
+			srv.URL + "/test",
 			http.StatusOK,
 			map[string]string{"message": "GET request successful"},
 		},
 		{
 			"POST",
-			testServer.URL + "/test",
+			srv.URL + "/test",
 			http.StatusCreated,
 			map[string]string{"message": "POST request successful"},
 		},
 		{
 			"PUT",
-			testServer.URL + "/test",
+			srv.URL + "/test",
 			http.StatusOK,
 			map[string]string{"message": "PUT request successful"},
 		},
 		{
 			"DELETE",
-			testServer.URL + "/test",
+			srv.URL + "/test",
 			http.StatusNoContent,
 			nil,
 		},
@@ -96,79 +96,78 @@ func TestClient_DoWithMockServer(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.method, func(t *testing.T) {
 			// Create a new client and set debugging if enabled
-			client := New()
-			client.Config.Debug = DebuggingEnabled
+			c := New(Config{})
+			c.Config.Debug = debugEnabled
 
-			var reqBody *bytes.Buffer
+			var body *bytes.Buffer
 			if tt.method == "POST" || tt.method == "PUT" {
-				reqBody = bytes.NewBufferString("test data")
+				body = bytes.NewBufferString("test data")
 			}
 
 			// Call the client method based on the HTTP method
 			switch tt.method {
 			case "GET":
-				client.Do("GET", tt.url, nil, nil)
+				c.Do("GET", tt.url, nil, nil)
 			case "POST":
-				client.Do("POST", tt.url, nil, reqBody)
+				c.Do("POST", tt.url, nil, body)
 			case "PUT":
-				client.Do("PUT", tt.url, nil, reqBody)
+				c.Do("PUT", tt.url, nil, body)
 			case "DELETE":
-				client.Do("DELETE", tt.url, nil, nil)
+				c.Do("DELETE", tt.url, nil, nil)
 			}
 
 			// Assert the status code matches the expected result
-			assert.Equal(t, tt.expectedCode, client.StatusCode, "Status code mismatch")
+			assert.Equal(t, tt.expectedCode, c.StatusCode, "Status code mismatch")
 
 			// Unmarshal the response data and assert the expected response
-			var response map[string]string
-			err := client.ResponseToMap(&response)
+			var res map[string]string
+			err := c.ResponseToMap(&res)
 			if err != nil {
 				return
 			}
-			if client.Error != nil {
-				t.Fatalf("Error while using ResponseToMap: %v", client.Error)
+			if c.Error != nil {
+				t.Fatalf("Error while using ResponseToMap: %v", c.Error)
 			}
 
 			// Assert that the message in the response matches the expected message
 			assert.Equal(
 				t,
 				tt.expectedData["message"],
-				response["message"],
+				res["message"],
 				"Response data mismatch",
 			)
 
-			if client.GetDebugInfo() == "" && client.Config.Debug == true {
+			if c.GetDebugInfo() == "" && c.Config.Debug == true {
 				t.Fatal("GetDebugInfo() must return an empty string when debug is set to true")
 			}
 		})
 	}
 }
 
-// TestClient_Get tests the Get method and validates query parameters
-func TestClient_Get(t *testing.T) {
+// TestClientGet tests the Get method and validates query parameters
+func TestClientGet(t *testing.T) {
 	// Enable debugging for this test
-	DebuggingEnabled = true
+	debugEnabled = true
 
 	// Start the test server
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Echo back the query parameters as JSON
-		queryParams := r.URL.Query()
-		responseData := map[string]interface{}{
+		q := r.URL.Query()
+		res := map[string]interface{}{
 			"message": "GET request successful",
-			"query":   queryParams,
+			"query":   q,
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		// Respond with query parameters received
-		err := json.NewEncoder(w).Encode(responseData)
+		err := json.NewEncoder(w).Encode(res)
 		if err != nil {
 			return
 		}
 	}))
-	defer server.Close()
+	defer srv.Close()
 
-	client := New()
-	client.Config.Debug = DebuggingEnabled
+	c := New(Config{Debug: debugEnabled})
 
 	// Example query parameters
 	query := []Query{
@@ -177,195 +176,192 @@ func TestClient_Get(t *testing.T) {
 	}
 
 	// Make a GET request with query parameters
-	client.Get(server.URL, query)
+	c.Get(srv.URL, query)
 
 	// Assert the status code is what we expect for a GET request
-	assert.Equal(t, http.StatusOK, client.StatusCode, "Expected status code 200 for GET request")
+	assert.Equal(t, http.StatusOK, c.StatusCode, "Expected status code 200 for GET request")
 
 	// Use ResponseToMap to decode the response
-	var response map[string]interface{}
-	err := client.ResponseToMap(&response)
+	var res map[string]interface{}
+	err := c.ResponseToMap(&res)
 	if err != nil {
 		return
 	}
-	if client.Error != nil {
-		t.Fatalf("Error while using ResponseToMap: %v", client.Error)
+	if c.Error != nil {
+		t.Fatalf("Error while using ResponseToMap: %v", c.Error)
 	}
 
 	// Assert the response message is correct
 	assert.Equal(
 		t,
 		"GET request successful",
-		response["message"],
+		res["message"],
 		"Expected response message for GET request",
 	)
 
 	// Assert that the query parameters were received correctly
-	queryMap := response["query"].(map[string]interface{})
+	qMap := res["query"].(map[string]interface{})
 
 	assert.Equal(
 		t,
 		"value1",
-		queryMap["param1"].([]interface{})[0],
+		qMap["param1"].([]interface{})[0],
 		"Expected param1 to be 'value1'",
 	)
 	assert.Equal(
 		t,
 		"value2",
-		queryMap["param2"].([]interface{})[0],
+		qMap["param2"].([]interface{})[0],
 		"Expected param2 to be 'value2'",
 	)
 }
 
-// TestClient_Post tests the Post method of the Client
-func TestClient_Post(t *testing.T) {
+// TestClientPost tests the Post method of the Client
+func TestClientPost(t *testing.T) {
 	// Enable debugging for this test
-	DebuggingEnabled = true
+	debugEnabled = true
 
 	// Start the test server
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var responseData map[string]string
-		if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var data map[string]string
+		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 			t.Fatalf("Error decoding request body: %v", err)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		// Respond with the received request body
-		err := json.NewEncoder(w).Encode(responseData)
+		err := json.NewEncoder(w).Encode(data)
 		if err != nil {
 			return
 		}
 	}))
-	defer server.Close()
+	defer srv.Close()
 
-	client := New()
-	client.Config.Debug = DebuggingEnabled
+	c := New(Config{Debug: debugEnabled})
 
 	// Prepare POST request body
-	reqBody := bytes.NewBufferString(`{"key":"value"}`)
+	body := bytes.NewBufferString(`{"key":"value"}`)
 
 	// Make a POST request
-	client.Post(server.URL, nil, reqBody)
+	c.Post(srv.URL, nil, body)
 
 	// Assert the status code is what we expect for a POST request
 	assert.Equal(
 		t,
 		http.StatusCreated,
-		client.StatusCode,
+		c.StatusCode,
 		"Expected status code 201 for POST request",
 	)
 
 	// Use ResponseToMap to decode the response
-	var response map[string]string
-	err := client.ResponseToMap(&response)
+	var res map[string]string
+	err := c.ResponseToMap(&res)
 	if err != nil {
 		return
 	}
-	if client.Error != nil {
-		t.Fatalf("Error while using ResponseToMap: %v", client.Error)
+	if c.Error != nil {
+		t.Fatalf("Error while using ResponseToMap: %v", c.Error)
 	}
 
 	// Assert the response message is correct
-	assert.Equal(t, "value", response["key"], "Expected key to have value 'value'")
+	assert.Equal(t, "value", res["key"], "Expected key to have value 'value'")
 }
 
-// TestClient_Put tests the Put method of the Client
-func TestClient_Put(t *testing.T) {
+// TestClientPut tests the Put method of the Client
+func TestClientPut(t *testing.T) {
 	// Enable debugging for this test
-	DebuggingEnabled = true
+	debugEnabled = true
 
 	// Start the test server
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var responseData map[string]string
-		if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var data map[string]string
+		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 			t.Fatalf("Error decoding request body: %v", err)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		// Respond with the received request body (optional, as we might not send back content for 204)
-		err := json.NewEncoder(w).Encode(responseData)
+		err := json.NewEncoder(w).Encode(data)
 		if err != nil {
 			return
 		}
 	}))
-	defer server.Close()
+	defer srv.Close()
 
-	client := New()
-	client.Config.Debug = DebuggingEnabled
+	c := New(Config{Debug: debugEnabled})
 
 	// Prepare the PUT request body
-	reqBody := bytes.NewBufferString(`{"key":"updated value"}`)
+	body := bytes.NewBufferString(`{"key":"updated value"}`)
 
 	// Make a PUT request
-	client.Put(server.URL, nil, reqBody)
+	c.Put(srv.URL, nil, body)
 
 	// Assert the status code is what we expect for a PUT request
 	assert.Equal(
 		t,
 		http.StatusOK,
-		client.StatusCode,
+		c.StatusCode,
 		"Expected status code 204 for PUT request",
 	)
 
 	// Use ResponseToMap to decode the response (optional, as the response might be empty for 204)
-	var response map[string]string
-	err := client.ResponseToMap(&response)
+	var res map[string]string
+	err := c.ResponseToMap(&res)
 	if err != nil {
 		t.Fatalf("Error while using ResponseToMap: %v", err)
 	}
-	if client.Error != nil {
-		t.Fatalf("Error while using ResponseToMap: %v", client.Error)
+	if c.Error != nil {
+		t.Fatalf("Error while using ResponseToMap: %v", c.Error)
 	}
 
 	// Assert the response message is correct (optional)
-	assert.Equal(t, "updated value", response["key"], "Expected key to be 'updated value'")
+	assert.Equal(t, "updated value", res["key"], "Expected key to be 'updated value'")
 }
 
-// TestClient_Delete tests the Delete method of the Client
-func TestClient_Delete(t *testing.T) {
+// TestClientDelete tests the Delete method of the Client
+func TestClientDelete(t *testing.T) {
 	// Enable debugging for this test
-	DebuggingEnabled = true
+	debugEnabled = true
 
 	// Start the test server
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Echo back the method used for the delete operation
-		responseData := map[string]string{
+		data := map[string]string{
 			"message": "DELETE request successful",
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		// Respond with the message
-		err := json.NewEncoder(w).Encode(responseData)
+		err := json.NewEncoder(w).Encode(data)
 		if err != nil {
 			return
 		}
 	}))
-	defer server.Close()
+	defer srv.Close()
 
-	client := New()
-	client.Config.Debug = DebuggingEnabled
+	c := New(Config{Debug: debugEnabled})
 
 	// Make a DELETE request
-	client.Delete(server.URL, nil, nil)
+	c.Delete(srv.URL, nil, nil)
 
-	// Assert the status code is what we expect for a DELETE request
-	assert.Equal(t, http.StatusOK, client.StatusCode, "Expected status code 200 for DELETE request")
+	// Assert the status code is what we expect for a GET request
+	assert.Equal(t, http.StatusOK, c.StatusCode, "Expected status code 200 for DELETE request")
 
 	// Use ResponseToMap to decode the response
-	var response map[string]string
-	err := client.ResponseToMap(&response)
+	var res map[string]string
+	err := c.ResponseToMap(&res)
 	if err != nil {
 		return
 	}
-	if client.Error != nil {
-		t.Fatalf("Error while using ResponseToMap: %v", client.Error)
+	if c.Error != nil {
+		t.Fatalf("Error while using ResponseToMap: %v", c.Error)
 	}
 
 	// Assert the response message is correct
 	assert.Equal(
 		t,
 		"DELETE request successful",
-		response["message"],
+		res["message"],
 		"Expected response message for DELETE request",
 	)
 }
